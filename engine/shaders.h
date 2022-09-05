@@ -62,7 +62,7 @@ namespace engine {
             return *this;
         }
 
-        ShaderProgram &attachShader(Shader *shader) {
+        ShaderProgram &attachShader(const Shader *shader) {
             GLCall(glAttachShader(programID, shader->getID()));
             return *this;
         }
@@ -87,14 +87,14 @@ namespace engine {
             GLCall(glUseProgram(programID));
         }
 
-        GLuint getUniformLocation(const std::string& uniform) {
+        GLuint getUniformLocation(const std::string &uniform) {
             if (!uniformLocationMap.contains(uniform)) {
                 uniformLocationMap[uniform] = glGetUniformLocation(programID, uniform.c_str());
             }
             return uniformLocationMap[uniform];
         }
 
-        ShaderProgram &setMat4(std::string uniform, glm::mat4 &mat) {
+        ShaderProgram &setMat4(const std::string uniform, glm::mat4 &mat) {
             GLuint location = getUniformLocation(uniform);
             use();
             GLCall(glUniformMatrix4fv(location, 1, GL_FALSE,
@@ -102,7 +102,42 @@ namespace engine {
             return *this;
         }
 
-        void render(const engine::VertexArrayObject* vao) {
+        ShaderProgram &setVec4(const std::string &uniform, glm::vec4 &vec) {
+            GLuint location = getUniformLocation(uniform);
+            use();
+            GLCall(glUniform4fv(location, 1, glm::value_ptr(vec)));
+            return *this;
+        }
+
+        ShaderProgram &setVec3(const std::string &uniform, glm::vec3 &vec) {
+            GLuint location = getUniformLocation(uniform);
+            use();
+            GLCall(glUniform3fv(location, 1, glm::value_ptr(vec)));
+            return *this;
+        }
+
+        ShaderProgram &setVec2(const std::string &uniform, glm::vec2 &vec) {
+            GLuint location = getUniformLocation(uniform);
+            use();
+            GLCall(glUniform2fv(location, 1, glm::value_ptr(vec)));
+            return *this;
+        }
+
+        ShaderProgram &setFloat(const std::string &uniform, GLfloat v) {
+            GLuint location = getUniformLocation(uniform);
+            use();
+            GLCall(glUniform1fv(location, 1, &v));
+            return *this;
+        }
+
+        ShaderProgram &setInt(const std::string &uniform, GLint v) {
+            GLuint location = getUniformLocation(uniform);
+            use();
+            GLCall(glUniform1iv(location, 1, &v));
+            return *this;
+        }
+
+        void render(const engine::VertexArrayObject *vao) {
             use();
             vao->render();
         }

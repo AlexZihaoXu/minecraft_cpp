@@ -30,5 +30,6 @@ void _glErrorCallback(const char* file, int line) {
 #include "Window.h"
 #include "buffers.h"
 #include "shaders.h"
+#include "textures.h"
 
 #endif //MINECRAFT_ENGINE_H

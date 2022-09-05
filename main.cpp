@@ -12,6 +12,7 @@ public:
     engine::VertexBufferObject *vbo;
     engine::VertexArrayObject *vao;
     engine::ElementBufferObject *ebo;
+    engine::Texture *texture;
 
     void onSetup() override {
         program = new engine::ShaderProgram();
@@ -19,48 +20,47 @@ public:
 #version 330 core
 
 layout (location=0) in vec3 aPos;
-layout (location=1) in vec3 aColor;
+layout (location=1) in vec2 aTexCoord;
 
-out vec3 oColor;
+out vec2 texCoord;
 uniform mat4 proj;
 uniform mat4 obj;
 
 void main() {
-    oColor = aColor;
+    texCoord = aTexCoord;
     gl_Position = proj * obj * vec4(aPos, 1.0);
 }
 )");
         var fragShader = new engine::Shader(GL_FRAGMENT_SHADER, R"(
 #version 330 core
 
-in vec3 oColor;
+in vec2 texCoord;
 out vec4 FragColor;
 
+uniform sampler2D texture0;
+
 void main() {
-    FragColor = vec4(oColor, 1.0);
+    FragColor = texture(texture0, texCoord) * vec4(0.5, 0.5, 0.5, 1) + vec4(0.5, 0.5, 0.5, 0);
 }
 )");
         program->attachShader(vertShader).attachShader(fragShader);
         program->link();
         vbo = new engine::VertexBufferObject({
-            -1, -1, -1, 0, 0, 0,
-            -1, -1, +1, 0, 0, 1,
-            +1, -1, -1, 0, 1, 0,
-            +1, -1, +1, 0, 1, 1,
-            -1, +1, -1, 1, 0, 0,
-            -1, +1, +1, 1, 0, 1,
-            +1, +1, -1, 1, 1, 0,
-            +1, +1, +1, 1, 1, 1,
-        });
+                                                     0, 0, 0, 0, 0,
+                                                     0, 0, 1, 0, 1,
+                                                     1, 0, 0, 1, 0,
+                                                     1, 0, 1, 1, 1,
+                                                     0, 1, 0, 0, 1,
+                                                     0, 1, 1, 0, 1,
+                                                     1, 1, 0, 0, 1,
+                                                     1, 1, 1, 0, 1
+
+                                             });
         ebo = new engine::ElementBufferObject({
-            0, 2, 6, 0, 6, 4,
-            3, 1, 7, 1, 5, 7,
-            1, 4, 5, 1, 0, 4,
-            2, 3, 6, 3, 7, 6,
-            4, 6, 5, 5, 6, 7,
-            1, 3, 2, 1, 2, 0
-        });
-        vao = new engine::VertexArrayObject(vbo, ebo,{3, 3});
+                                                      0, 4, 6, 0, 6, 2
+                                              });
+        vao = new engine::VertexArrayObject(vbo, ebo, {3, 2});
+        texture = engine::Texture::get("res/cobblestone.png");
 
         delete vertShader;
         delete fragShader;
@@ -102,12 +102,14 @@ void main() {
         for (float x = -objCount / 2.0f; x < objCount / 2.0f; ++x) {
             for (int y = -objCount / 2.0f; y < objCount / 2.0f; ++y) {
                 glm::mat4 obj = glm::mat4(1.0f);
-                obj = glm::translate(obj, {x * 4, y * 4, -50.0f});
+                obj = glm::translate(obj, {x * 4, y * 4, -10.0f});
                 obj = glm::rotate(obj, (float) (cos(glfwGetTime() * 1.3 / 4)) / 10.0f, {1.0f, 0.0f, 0.0f});
                 obj = glm::rotate(obj, (float) (sin(glfwGetTime() * 1.1 / 4 + 10)) / 10.0f, {0.0f, 0.0f, 1.0f});
                 obj = glm::rotate(obj, angle, {0.0f, 1.0f, 0.0f});
                 program->setMat4("proj", proj);
                 program->setMat4("obj", obj);
+                texture->bind();
+                program->setInt("texture0", 0);
                 program->render(vao);
             }
         }
