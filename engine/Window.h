@@ -25,7 +25,6 @@ namespace engine {
 
     public:
 
-
         Window(const std::string &title, int width, int height) {
             if (created) {
                 throw std::runtime_error("Another window instance was created already!");
@@ -47,6 +46,7 @@ namespace engine {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
@@ -148,6 +148,13 @@ namespace engine {
 
         }
 
+        void bind() const {
+            glfwMakeContextCurrent(windowHandle);
+            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+        }
+
+        // Virtual Functions
+
         virtual void onResize(int w, int h) {
 
         }
@@ -182,11 +189,15 @@ namespace engine {
 
         // Getters
 
+        static Window &getInstance() {
+            return *instance;
+        }
+
         GLFWwindow *getHandle() {
             return windowHandle;
         }
 
-        std::string getTitle() {
+        std::string &getTitle() {
             return title;
         }
 

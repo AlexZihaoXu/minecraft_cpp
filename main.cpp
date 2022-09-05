@@ -13,6 +13,7 @@ public:
     engine::VertexArrayObject *vao;
     engine::ElementBufferObject *ebo;
     engine::Texture *texture;
+    engine::Framebuffer *framebuffer;
 
     void onSetup() override {
         program = new engine::ShaderProgram();
@@ -40,7 +41,7 @@ out vec4 FragColor;
 uniform sampler2D texture0;
 
 void main() {
-    FragColor = texture(texture0, texCoord) * vec4(0.5, 0.5, 0.5, 1) + vec4(0.5, 0.5, 0.5, 0);
+    FragColor = texture(texture0, texCoord);;
 }
 )");
         program->attachShader(vertShader).attachShader(fragShader);
@@ -71,6 +72,13 @@ void main() {
         ImGui_ImplGlfw_InitForOpenGL(getHandle(), true);
         ImGui_ImplOpenGL3_Init();
         ImGui::StyleColorsDark();
+
+        framebuffer = new engine::Framebuffer(16, 16);
+        framebuffer->bindContext();
+        glClearColor(1, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        bind();
 
     }
 
@@ -108,7 +116,7 @@ void main() {
                 obj = glm::rotate(obj, angle, {0.0f, 1.0f, 0.0f});
                 program->setMat4("proj", proj);
                 program->setMat4("obj", obj);
-                texture->bind();
+                framebuffer->bind();
                 program->setInt("texture0", 0);
                 program->render(vao);
             }
