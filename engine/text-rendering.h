@@ -1,8 +1,0 @@
-//
-// Created by Alex on 9/5/2022.
-//
-
-#ifndef MINECRAFT_TEXT_RENDERING_H
-#define MINECRAFT_TEXT_RENDERING_H
-
-#endif //MINECRAFT_TEXT_RENDERING_H

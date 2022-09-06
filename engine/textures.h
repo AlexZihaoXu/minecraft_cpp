@@ -60,6 +60,10 @@ namespace engine {
             return channel;
         }
 
+        int texture() const {
+            return id;
+        };
+
         void bind() const {
             GLCall(glActiveTexture(GL_TEXTURE0));
             GLCall(glBindTexture(GL_TEXTURE_2D, id));
@@ -73,14 +77,14 @@ namespace engine {
 
     class Framebuffer {
     private:
-        GLuint framebuffer, colorBuffer, renderBuffer;
+        GLuint frameBuffer, colorBuffer, renderBuffer;
         int w, h;
 
     public:
         Framebuffer(int w, int h) {
             this->w = w;
             this->h = h;
-            GLCall(glGenFramebuffers(1, &framebuffer));
+            GLCall(glGenFramebuffers(1, &frameBuffer));
             bindContext();
             GLCall(glGenTextures(1, &colorBuffer));
             bind();
@@ -96,7 +100,7 @@ namespace engine {
                                              renderBuffer));
 
             if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-                throw std::runtime_error("Unable to create framebuffer!");
+                throw std::runtime_error("Unable to create frameBuffer!");
             }
 
             GLCall(glClearColor(0, 0, 0, 0));
@@ -107,7 +111,7 @@ namespace engine {
         }
 
         ~Framebuffer() {
-            GLCall(glDeleteFramebuffers(1, &framebuffer));
+            GLCall(glDeleteFramebuffers(1, &frameBuffer));
             GLCall(glDeleteRenderbuffers(1, &renderBuffer));
             GLCall(glDeleteTextures(1, &colorBuffer));
         }
@@ -120,6 +124,17 @@ namespace engine {
             return h;
         }
 
+        GLuint framebuffer() const {
+            return frameBuffer;
+        }
+
+        GLuint texture() const {
+            return colorBuffer;
+        }
+        GLuint renderbuffer() const {
+            return renderBuffer;
+        }
+
         void bind() const {
             GLCall(glBindTexture(GL_TEXTURE_2D, colorBuffer));
         }
@@ -129,7 +144,7 @@ namespace engine {
         }
 
         void bindContext() const {
-            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, framebuffer));
+            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer));
         }
 
         void unbindContext() const {

@@ -67,7 +67,7 @@ namespace engine {
             return *this;
         }
 
-        void link() {
+        ShaderProgram* link() {
             GLCall(glLinkProgram(programID));
             GLint isLinked = 0;
             GLCall(glGetProgramiv(programID, GL_LINK_STATUS, &isLinked));
@@ -81,6 +81,7 @@ namespace engine {
                 console.err("Unable to link shader program: \n"s + infoLog);
                 throw std::runtime_error("Unable to link shader program!");
             }
+            return this;
         }
 
         void use() {
@@ -102,21 +103,21 @@ namespace engine {
             return *this;
         }
 
-        ShaderProgram &setVec4(const std::string &uniform, glm::vec4 &vec) {
+        ShaderProgram &setVec4(const std::string &uniform, const glm::vec4 &vec) {
             GLuint location = getUniformLocation(uniform);
             use();
             GLCall(glUniform4fv(location, 1, glm::value_ptr(vec)));
             return *this;
         }
 
-        ShaderProgram &setVec3(const std::string &uniform, glm::vec3 &vec) {
+        ShaderProgram &setVec3(const std::string &uniform, const glm::vec3 &vec) {
             GLuint location = getUniformLocation(uniform);
             use();
             GLCall(glUniform3fv(location, 1, glm::value_ptr(vec)));
             return *this;
         }
 
-        ShaderProgram &setVec2(const std::string &uniform, glm::vec2 &vec) {
+        ShaderProgram &setVec2(const std::string &uniform, const glm::vec2 &vec) {
             GLuint location = getUniformLocation(uniform);
             use();
             GLCall(glUniform2fv(location, 1, glm::value_ptr(vec)));
