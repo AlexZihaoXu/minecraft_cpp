@@ -17,6 +17,8 @@
 #include <gtc/matrix_transform.hpp>
 #include <string>
 #include <stdexcept>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 #include "logging.h"
 
 void _glErrorCallback(const char *file, int line) {
@@ -51,5 +53,6 @@ void _glErrorCallback(const char *file, int line) {
 #include "buffers.h"
 #include "shaders.h"
 #include "textures.h"
+#include "fonts.h"
 
 #endif //MINECRAFT_ENGINE_H
