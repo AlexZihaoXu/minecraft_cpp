@@ -22,6 +22,7 @@ namespace engine {
         inline static VertexArrayObject *renderVAO;
         inline static VertexBufferObject *renderVBO;
         inline static ShaderProgram *renderShader;
+        int currentSize = 16;
         std::map<int, std::map<FT_ULong, Character>> characters;
 
         Font(const std::string &path) {
@@ -29,11 +30,19 @@ namespace engine {
             if (FT_New_Face(ft, path.c_str(), 0, &face)) {
                 throw std::runtime_error("Unable to load font from: " + path);
             }
+            FT_Set_Pixel_Sizes(face, 0, currentSize);
         }
 
         ~Font() {
             FT_Done_Face(face);
 
+        }
+
+        void setFontSize(int size) {
+            if (size != currentSize) {
+                currentSize = size;
+                FT_Set_Pixel_Sizes(face, 0, currentSize);
+            }
         }
 
     public:
@@ -110,15 +119,19 @@ void main() {
 
         FT_Face face;
 
-        int getLineHeight(int font_size) {
-            return abs(face->descender) * font_size / face->units_per_EM;
+        int getHeight(int font_size) {
+            setFontSize(font_size);
+            int bbox_ymax = FT_MulFix(face->bbox.yMax, face->size->metrics.y_scale) >> 6;
+            int bbox_ymin = FT_MulFix(face->bbox.yMin, face->size->metrics.y_scale) >> 6;
+            int height = bbox_ymax - bbox_ymin;
+            return height + 2;
         }
 
         bool loadGlyph(FT_ULong c, int size) {
             if (characters.contains(size) && characters[size].contains(c)) {
                 return true;
             }
-            FT_Set_Pixel_Sizes(face, 0, size);
+            setFontSize(size);
             if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
                 return false;
             }
@@ -155,6 +168,7 @@ void main() {
             renderShader->setInt("tex", 0);
             renderVAO->bind();
             std::string::const_iterator c;
+            GLCall(glActiveTexture(GL_TEXTURE0));
             for (c = text.begin(); c != text.end(); c++) {
                 if (!loadGlyph(*c, size)) {
                     continue;
@@ -172,7 +186,6 @@ void main() {
                                 glm::mat4(1.0f), {xPos, yPos, 0.0f}
                         ), {(float) w, (float) h, 1.0f});
 
-                GLCall(glActiveTexture(GL_TEXTURE0));
                 GLCall(glBindTexture(GL_TEXTURE_2D, ch.texture));
                 renderShader->setMat4("trans", mat);
                 GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
