@@ -10,7 +10,22 @@ namespace minecraft::client::render {
     private:
         inline static bool initialized = false;
         inline static engine::ShaderProgram *shader;
+        inline static engine::VertexArrayObject *vao;
+        glm::mat4 transform{};
+        glm::vec4 color{};
+        bool transformChanged = false;
 
+        void applyTransform() {
+            if (transformChanged) {
+                shader->use();
+                shader->setMat4("trans", transform);
+                shader->setVec4("color", color);
+                transformChanged = false;
+            }
+        }
+
+        inline static int MODE_TEXTURE = 0;
+        inline static int MODE_RECT = 1;
 
     public:
 
@@ -25,27 +40,31 @@ namespace minecraft::client::render {
 layout (location=0) in vec2 aPos;
 out vec2 texCoords;
 uniform mat4 trans;
+uniform vec4 rect;
 
 void main() {
     texCoords = aPos;
-    gl_Position = trans * vec4(aPos, 0.0, 1.0);
+    gl_Position = trans * vec4(rect[0] + aPos.x * rect[2], rect[1] + aPos.y * rect[3], 0.0, 1.0);
 }
 )");
             var fragShader = new engine::Shader(GL_FRAGMENT_SHADER, R"(
 #version 330 core
 
 in vec2 texCoords;
-uniform sampler2D tex0;
-uniform int mode;
-uniform vec3 color;
-uniform vec4 rect;
 out vec4 FragColor;
+uniform int mode;
+uniform sampler2D tex0;
+uniform vec4 color;
 
-#define TEXTURE 0
+#define MODE_TEXTURE 0
+#define MODE_RECT 1
 
 void main() {
-
-    FragColor = texture(tex0, texCoords);
+    if (mode == MODE_RECT) {
+        FragColor = color;
+    } else {
+        FragColor = texture(tex0, texCoords) * color;
+    }
 }
 
 )");
@@ -54,10 +73,123 @@ void main() {
             delete vertShader;
             delete fragShader;
 
+            var vbo = new engine::VertexBufferObject({
+                                                             0, 0, 0, 1, 1, 1,
+                                                             0, 0, 1, 1, 1, 0
+                                                     });
+
+            vao = new engine::VertexArrayObject(vbo, {2});
+
             initialized = true;
         }
 
+        Renderer2D() {
+            initialize();
+        }
+
+        // Setters
+
+        Renderer2D *setColor(float r, float g, float b, float a) {
+            color.r = r;
+            color.g = g;
+            color.b = b;
+            color.a = a;
+            transformChanged = true;
+
+            return this;
+        }
+
+        Renderer2D *setColor(float r, float g, float b) {
+            return setColor(r, g, b, 1);
+        }
+
+        Renderer2D *setColor(float brightness, float alpha) {
+            return setColor(brightness, brightness, brightness, alpha);
+        }
+
+        Renderer2D *setColor(float brightness) {
+            return setColor(brightness, 1);
+        }
+
+        // Transformations
+
+        Renderer2D *resetTransform(float width, float height) {
+            transformChanged = true;
+            transform = glm::ortho(0.0f, (float) width, (float) height, 0.0f);
+            return this;
+        }
+
+        Renderer2D *resetTransform(int width, int height) {
+            return resetTransform((float) width, (float) height);
+        }
+
+        Renderer2D *translate(float x, float y) {
+            transformChanged = true;
+            transform = glm::translate(transform, {x, y, 0});
+            return this;
+        }
+
+        Renderer2D *translate(const glm::vec2 &xy) {
+            return translate(xy.x, xy.y);
+        }
+
+        Renderer2D *rotate(float angle) {
+            transformChanged = true;
+            transform = glm::rotate(transform, angle, {0, 0, 1});
+            return this;
+        }
+
+        Renderer2D *scale(float x, float y) {
+            transformChanged = true;
+            transform = glm::scale(transform, {x, y, 1});
+            return this;
+        }
+
+        Renderer2D *scale(float s) {
+            return scale(s, s);
+        }
+
+        // Render
+
+        Renderer2D *rect(float x, float y, float w, float h) {
+            applyTransform();
+            shader->use();
+            shader->setInt("mode", MODE_RECT);
+            shader->setVec4("rect", {x, y, w, h});
+
+            shader->render(vao);
+
+            return this;
+        }
+
+        Renderer2D *image(engine::Texture* texture, float x, float y) {
+            applyTransform();
+            shader->use();
+            shader->setInt("mode", MODE_TEXTURE);
+            shader->setInt("tex0", 0);
+            shader->setVec4("rect", {x, y, texture->width(), texture->height()});
+            texture->bind();
+
+            shader->render(vao);
+
+            return this;
+        }
+
+        Renderer2D *image(engine::Framebuffer* framebuffer, float x, float y) {
+            applyTransform();
+            shader->use();
+            shader->setInt("mode", MODE_TEXTURE);
+            shader->setInt("tex0", 0);
+            shader->setVec4("rect", {x, y, framebuffer->width(), framebuffer->height()});
+            framebuffer->bind();
+
+            shader->render(vao);
+
+            return this;
+        }
     };
+
+
 }
 
 #endif //MINECRAFT_CLIENT_2D_RENDERER_H

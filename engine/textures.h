@@ -27,8 +27,10 @@ namespace engine {
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 
             GLubyte *data = stbi_load(path.c_str(), &w, &h, &channel, 0);
+            console.info("Debug", "channel: "s + std::to_string(channel));
             if (data) {
-                GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
+                GLCall(glTexImage2D(GL_TEXTURE_2D, 0, channel == 4 ? GL_RGBA : GL_RGB, w, h, 0,
+                                    channel == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data));
                 GLCall(glGenerateMipmap(GL_TEXTURE_2D));
             } else {
                 throw std::runtime_error("Unable to load texture from: " + path);
@@ -131,6 +133,7 @@ namespace engine {
         GLuint texture() const {
             return colorBuffer;
         }
+
         GLuint renderbuffer() const {
             return renderBuffer;
         }

@@ -47,7 +47,13 @@ namespace minecraft {
                 GLCall(glEnable(GL_DEPTH_TEST));
                 GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-                onRenderGUI(dt);
+//                onRenderGUI(dt);
+
+                render::Renderer2D renderer;
+                renderer.resetTransform(getWidth(), getHeight())->translate(10, 10)->setColor(0.8)->rect(0, 0, 100,
+                                                                                                         100);
+
+                renderer.scale(3, 3)->image(engine::Texture::get("res/cobblestone.png"), 100, 100);
             }
 
             void onRenderGUI(double dt) {

@@ -109,7 +109,7 @@ void main() {
                 try {
                     var font = new Font(path);
                     fontMap[path] = font;
-                } catch (std::runtime_error) {
+                } catch (std::runtime_error& err) {
                     fontMap[path] = nullptr;
                     return nullptr;
                 }

@@ -18,7 +18,7 @@ private:
         struct tm s{};
         char buf[80];
         s = *localtime(&now);
-        strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &s);
+        strftime(buf, sizeof(buf), "%Y-%m-%d %X", &s);
         return buf;
     }
 
