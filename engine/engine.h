@@ -19,7 +19,7 @@
 #include <stdexcept>
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include "logging.h"
+#include "../minecraft/common/logging.h"
 
 void _glErrorCallback(const char *file, int line) {
     var errorCode = glGetError();

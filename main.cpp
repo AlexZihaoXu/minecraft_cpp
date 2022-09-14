@@ -2,8 +2,8 @@
 
 int main() {
 
-    minecraft::MinecraftClientWindow::launch();
-    minecraft::MinecraftClientWindow::cleanup();
+    minecraft::client::MinecraftClientWindow::launch();
+    minecraft::client::MinecraftClientWindow::cleanup();
 
     return 0;
 }

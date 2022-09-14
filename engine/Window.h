@@ -6,7 +6,7 @@
 #define MINECRAFT_WINDOW_H
 
 
-#include "logging.h"
+#include "../minecraft/common/logging.h"
 
 namespace engine {
 

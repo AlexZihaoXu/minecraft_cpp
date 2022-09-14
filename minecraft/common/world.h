@@ -5,7 +5,7 @@
 #ifndef MINECRAFT_WORLD_H
 #define MINECRAFT_WORLD_H
 
-namespace minecraft {
+namespace minecraft::blocks {
 
     namespace render {
 
@@ -30,7 +30,7 @@ namespace minecraft {
         std::string name;
         std::string displayName;
         int blockID;
-        std::vector<minecraft::render::ModelFaceRenderDefinition> modelFaceRenderDefinition;
+        std::vector<render::ModelFaceRenderDefinition> modelFaceRenderDefinition;
 
         Block(int blockID, const std::string &name, const std::string &displayName) {
             this->name = name;
@@ -43,17 +43,17 @@ namespace minecraft {
             int id = (int) (registeredBlocks.size());
             registeredBlocks.push_back({id, name, displayName});
             blockNameMap[name] = id;
-            return getBlock(id);
+            return get(id);
         }
 
-        static Block *getBlock(int id) {
+        static Block *get(int id) {
             if (id >= registeredBlocks.size() || id < 0)
                 return nullptr;
             return &registeredBlocks[id];
         }
 
-        static Block *getBlock(const std::string &name) {
-            return getBlock(blockNameMap[name]);
+        static Block *get(const std::string &name) {
+            return get(blockNameMap[name]);
         }
 
         // Modifiers
@@ -75,6 +75,10 @@ namespace minecraft {
 
         std::string getDisplayName() const {
             return displayName;
+        }
+
+        const std::vector<render::ModelFaceRenderDefinition> getModelFaceRenderDefinition() {
+            return modelFaceRenderDefinition;
         }
 
         // Setters

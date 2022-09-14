@@ -31,21 +31,38 @@ public:
         log(content.c_str());
     }
 
+    void info(const char *source, const char *content) {
+        std::cout << "[" + getTime() + "][" << source << "/INFO] " << content << std::endl;
+    }
+
     void info(const char *content) {
         std::cout << "[" + getTime() + "][INFO] " << content << std::endl;
     }
 
+    void info(const std::string &source, const std::string &content) {
+        info(source.c_str(), content.c_str());
+    }
     void info(const std::string &content) {
         info(content.c_str());
     }
 
-    void err(const char *content) {
-        std::cerr << "[" + getTime() + "][ERROR] " << content << std::endl;
+    void err(const char *source, const char *content) {
+        std::cout << "[" + getTime() + "][" << source << "/ERROR] " << content << std::endl;
     }
 
-    void err(const std::string &content) {
-        err(content.c_str());
+    void err(const char *content) {
+        std::cout << "[" + getTime() + "][ERROR] " << content << std::endl;
     }
+
+    void err(const std::string &source, const std::string &content) {
+        info(source.c_str(), content.c_str());
+    }
+    void err(const std::string &content) {
+        info(content.c_str());
+    }
+
+
+
 } console;
 
 #endif //MINECRAFT_LOGGING_H

@@ -10,7 +10,9 @@
 #include <map>
 #include <vector>
 #include <deque>
+#include <set>
 
+#include "logging.h"
 #include "constants.h"
 #include "utils.h"
 #include "world.h"
