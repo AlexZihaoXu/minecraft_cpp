@@ -6,13 +6,21 @@
 #define MINECRAFT_CLIENT_2D_RENDERER_H
 
 namespace minecraft::client::render {
+
+    struct Renderer2DState {
+        glm::mat4 transform;
+        glm::vec4 color;
+    };
+
     class Renderer2D {
     private:
         inline static bool initialized = false;
         inline static engine::ShaderProgram *shader;
         inline static engine::VertexArrayObject *vao;
         glm::mat4 transform{};
-        glm::vec4 color{};
+        glm::vec4 color{1, 1, 1, 1};
+        std::stack<Renderer2DState> statesStack;
+
         bool transformChanged = false;
 
         void applyTransform() {
@@ -113,6 +121,18 @@ void main() {
 
         // Transformations
 
+        Renderer2D *pushState() {
+            statesStack.push({transform, color});
+            return this;
+        }
+
+        Renderer2D *popState() {
+            color = statesStack.top().color;
+            transform = statesStack.top().transform;
+            statesStack.pop();
+            return this;
+        }
+
         Renderer2D *resetTransform(float width, float height) {
             transformChanged = true;
             transform = glm::ortho(0.0f, (float) width, (float) height, 0.0f);
@@ -162,7 +182,7 @@ void main() {
             return this;
         }
 
-        Renderer2D *image(engine::Texture* texture, float x, float y) {
+        Renderer2D *image(engine::Texture *texture, float x, float y) {
             applyTransform();
             shader->use();
             shader->setInt("mode", MODE_TEXTURE);
@@ -175,7 +195,11 @@ void main() {
             return this;
         }
 
-        Renderer2D *image(engine::Framebuffer* framebuffer, float x, float y) {
+        Renderer2D *image(engine::Texture *texture, int x, int y) {
+            return image(texture, (float) x, (float) y);
+        }
+
+        Renderer2D *image(engine::Framebuffer *framebuffer, float x, float y) {
             applyTransform();
             shader->use();
             shader->setInt("mode", MODE_TEXTURE);
@@ -186,6 +210,10 @@ void main() {
             shader->render(vao);
 
             return this;
+        }
+
+        Renderer2D *image(engine::Framebuffer *framebuffer, int x, int y) {
+            return image(framebuffer, (float) x, (float) y);
         }
     };
 

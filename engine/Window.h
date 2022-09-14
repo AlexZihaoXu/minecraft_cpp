@@ -134,6 +134,8 @@ namespace engine {
                     }
                 }
 
+                GLCall(glViewport(0, 0, win_width, win_height));
+                bind();
                 this->onRender(dt);
                 glfwSwapBuffers(windowHandle);
                 glfwPollEvents();

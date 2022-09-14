@@ -10,6 +10,21 @@ namespace minecraft::blocks {
         Block::registerBlock("minecraft:stone", "stone")
                 ->renderFaceDefsPush({
                                              DONT_CARE,
+                                             "res/stone.png",
+                                             {{0, 0}, {0, 0, 0}},
+                                             {{0, 1}, {0, 1, 0}},
+                                             {{1, 1}, {1, 1, 0}}
+                                     })
+                ->renderFaceDefsPush({
+                                             DONT_CARE,
+                                             "res/cobblestone.png",
+                                             {{0, 0}, {0, 0, 0}},
+                                             {{1, 1}, {1, 1, 0}},
+                                             {{1, 0}, {1, 0, 0}}
+                                     });
+        Block::registerBlock("minecraft:cobblestone", "cobblestone")
+                ->renderFaceDefsPush({
+                                             DONT_CARE,
                                              "res/cobblestone.png",
                                              {{0, 0}, {0, 0, 0}},
                                              {{0, 1}, {0, 1, 0}},

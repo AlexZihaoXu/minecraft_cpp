@@ -41,19 +41,24 @@ namespace minecraft {
             }
 
             void onRender(double dt) override {
-                GLCall(glClearColor(0, 0, 0, 0));
+                GLCall(glClearColor(0.3, 0.3, 0.3, 1));
                 GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
                 GLCall(glEnable(GL_BLEND));
-                GLCall(glEnable(GL_DEPTH_TEST));
+                GLCall(glDisable(GL_DEPTH_TEST));
                 GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-//                onRenderGUI(dt);
+                render::Renderer2D r;
+                r.resetTransform(getWidth(), getHeight())
+                        ->translate((float) std::cos(glfwGetTime()) * 40 + 40, 10.0f)
+                        ->scale(4)
+                        ->image(render::BlockRenderer::getTextureAtlasBlocks(), 0, 0);
 
-                render::Renderer2D renderer;
-                renderer.resetTransform(getWidth(), getHeight())->translate(10, 10)->setColor(0.8)->rect(0, 0, 100,
-                                                                                                         100);
+                GLCall(glEnable(GL_DEPTH_TEST));
+                render::Camera cam;
+                var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -3}), (float) glfwGetTime(), {0, 1, 0});
+                render::BlockRenderer::renderBlock(blocks::Block::get( "minecraft:stone"), cam.projMat() * model);
 
-                renderer.scale(3, 3)->image(engine::Texture::get("res/cobblestone.png"), 100, 100);
+                onRenderGUI(dt);
             }
 
             void onRenderGUI(double dt) {

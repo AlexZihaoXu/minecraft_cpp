@@ -46,7 +46,7 @@ namespace minecraft::blocks {
             return get(id);
         }
 
-        static Block *get(int id) {
+        static Block *get(int id)  {
             if (id >= registeredBlocks.size() || id < 0)
                 return nullptr;
             return &registeredBlocks[id];
@@ -77,7 +77,7 @@ namespace minecraft::blocks {
             return displayName;
         }
 
-        const std::vector<render::ModelFaceRenderDefinition> getModelFaceRenderDefinition() {
+        const std::vector<render::ModelFaceRenderDefinition> getModelFaceRenderDefinition() const {
             return modelFaceRenderDefinition;
         }
 
