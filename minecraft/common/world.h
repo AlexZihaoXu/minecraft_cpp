@@ -20,6 +20,12 @@ namespace minecraft::blocks {
             MappingPos point1, point2, point3;
         };
 
+        struct ModelQuadFaceRenderDefinition {
+            int direction;
+            std::string texturePath;
+            MappingPos topleft, topright, bottomleft, bottomright;
+        };
+
     }
 
     class Block {
@@ -46,7 +52,7 @@ namespace minecraft::blocks {
             return get(id);
         }
 
-        static Block *get(int id)  {
+        static Block *get(int id) {
             if (id >= registeredBlocks.size() || id < 0)
                 return nullptr;
             return &registeredBlocks[id];
@@ -56,10 +62,106 @@ namespace minecraft::blocks {
             return get(blockNameMap[name]);
         }
 
-        // Modifiers
+        // Model Editing
 
-        virtual Block *renderFaceDefsPush(const render::ModelFaceRenderDefinition &defs) {
+        Block *renderFaceDefsPush(const render::ModelFaceRenderDefinition &defs) {
             modelFaceRenderDefinition.push_back(defs);
+            return this;
+        }
+
+        Block *renderFaceDefsPushQuad(const render::ModelQuadFaceRenderDefinition &defs) {
+            renderFaceDefsPush({
+                                       defs.direction,
+                                       defs.texturePath,
+                                       defs.bottomleft,
+                                       defs.topleft,
+                                       defs.topright
+                               });
+            renderFaceDefsPush({
+                                       defs.direction,
+                                       defs.texturePath,
+                                       defs.bottomleft,
+                                       defs.topright,
+                                       defs.bottomright
+                               });
+            return this;
+        }
+
+
+        Block *renderFaceDefsPushQuadNorth(const std::string &path) {
+            return renderFaceDefsPushQuad({
+                                                  NORTH, path,
+                                                  {{0, 1}, {1, 1, -1}},
+                                                  {{1, 1}, {0, 1, -1}},
+                                                  {{0, 0}, {1, 0, -1}},
+                                                  {{1, 0}, {0, 0, -1}},
+                                          });
+        }
+
+
+        Block *renderFaceDefsPushQuadSouth(const std::string &path) {
+            return renderFaceDefsPushQuad({
+                                                  SOUTH, path,
+                                                  {{0, 1}, {0, 1, 0}},
+                                                  {{1, 1}, {1, 1, 0}},
+                                                  {{0, 0}, {0, 0, 0}},
+                                                  {{1, 0}, {1, 0, 0}},
+                                          });
+        }
+
+        Block *renderFaceDefsPushQuadWest(const std::string &path) {
+            return renderFaceDefsPushQuad({
+                                                  WEST, path,
+                                                  {{0, 1}, {0, 1, -1}},
+                                                  {{1, 1}, {0, 1, 0}},
+                                                  {{0, 0}, {0, 0, -1}},
+                                                  {{1, 0}, {0, 0, 0}},
+                                          });
+        }
+
+        Block *renderFaceDefsPushQuadEast(const std::string &path) {
+            return renderFaceDefsPushQuad({
+                                                  EAST, path,
+                                                  {{0, 1}, {1, 1, 0}},
+                                                  {{1, 1}, {1, 1, -1}},
+                                                  {{0, 0}, {1, 0, 0}},
+                                                  {{1, 0}, {1, 0, -1}},
+                                          });
+        }
+
+        Block *renderFaceDefsPushQuadTop(const std::string &path) {
+            return renderFaceDefsPushQuad({
+                                                  UP, path,
+                                                  {{0, 1}, {0, 1, -1}},
+                                                  {{1, 1}, {1, 1, -1}},
+                                                  {{0, 0}, {0, 1, 0}},
+                                                  {{1, 0}, {1, 1, 0}},
+                                          });
+        }
+
+
+        Block *renderFaceDefsPushQuadBottom(const std::string &path) {
+            return renderFaceDefsPushQuad({
+                                                  DOWN, path,
+                                                  {{0, 1}, {1, 0, -1}},
+                                                  {{1, 1}, {0, 0, -1}},
+                                                  {{0, 0}, {1, 0, 0}},
+                                                  {{1, 0}, {0, 0, 0}},
+                                          });
+        }
+
+        Block *renderFaceDefsPushQuadsNSEW(const std::string &path) {
+            renderFaceDefsPushQuadEast(path);
+            renderFaceDefsPushQuadWest(path);
+            renderFaceDefsPushQuadNorth(path);
+            renderFaceDefsPushQuadSouth(path);
+            return this;
+        }
+
+        Block *renderFaceDefsPushQuadsAll(const std::string &path) {
+            renderFaceDefsPushQuadsNSEW(path);
+            renderFaceDefsPushQuadTop(path);
+            renderFaceDefsPushQuadBottom(path);
             return this;
         }
 

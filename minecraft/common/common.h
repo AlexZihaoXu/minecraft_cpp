@@ -11,6 +11,7 @@
 #include <vector>
 #include <deque>
 #include <set>
+#include <glm.hpp>
 
 #include "logging.h"
 #include "constants.h"

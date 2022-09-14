@@ -150,6 +150,10 @@ void main() {
             initialize();
 
             var model = getBlockVAO(block);
+            GLCall(glEnable(GL_DEPTH_TEST));
+            GLCall(glEnable(GL_CULL_FACE));
+            GLCall(glFrontFace(GL_CW));
+
 
             program->use();
             program->setMat4("trans", trans);

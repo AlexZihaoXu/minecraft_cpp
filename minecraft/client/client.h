@@ -40,23 +40,43 @@ namespace minecraft {
                 minecraft::client::render::BlockRenderer::initialize();
             }
 
+            render::Camera cam;
+
             void onRender(double dt) override {
                 GLCall(glClearColor(0.3, 0.3, 0.3, 1));
                 GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
                 GLCall(glEnable(GL_BLEND));
-                GLCall(glDisable(GL_DEPTH_TEST));
+                GLCall(glEnable(GL_DEPTH_TEST));
                 GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-                render::Renderer2D r;
-                r.resetTransform(getWidth(), getHeight())
-                        ->translate((float) std::cos(glfwGetTime()) * 40 + 40, 10.0f)
-                        ->scale(4)
-                        ->image(render::BlockRenderer::getTextureAtlasBlocks(), 0, 0);
-
-                GLCall(glEnable(GL_DEPTH_TEST));
-                render::Camera cam;
-                var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -3}), (float) glfwGetTime(), {0, 1, 0});
-                render::BlockRenderer::renderBlock(blocks::Block::get( "minecraft:stone"), cam.projMat() * model);
+                var speed = 3.0f;
+                if (glfwGetKey(getHandle(), GLFW_KEY_UP)) {
+                    cam.pitch += (float) dt * speed;
+                }
+                if (glfwGetKey(getHandle(), GLFW_KEY_DOWN)) {
+                    cam.pitch -= (float) dt * speed;
+                }
+                if (glfwGetKey(getHandle(), GLFW_KEY_LEFT)) {
+                    cam.yaw -= (float) dt * speed;
+                }
+                if (glfwGetKey(getHandle(), GLFW_KEY_RIGHT)) {
+                    cam.yaw += (float) dt * speed;
+                }
+                if (glfwGetKey(getHandle(), GLFW_KEY_W)) {
+                    cam.goForwardFree((float) (10 * dt));
+                }
+                if (glfwGetKey(getHandle(), GLFW_KEY_S)) {
+                    cam.goForwardFree((float) (-10 * dt));
+                }
+                if (glfwGetKey(getHandle(), GLFW_KEY_A)) {
+                    cam.goRight(-(float) (10 * dt));
+                }
+                if (glfwGetKey(getHandle(), GLFW_KEY_D)) {
+                    cam.goRight((float) (10 * dt));
+                }
+                var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -10}), 0.0f, {0, 1, 0});
+                render::BlockRenderer::renderBlock(blocks::Block::get("minecraft:cobblestone"),
+                                                   cam.projMat() * model);
 
                 onRenderGUI(dt);
             }
@@ -73,7 +93,9 @@ namespace minecraft {
                 std::vector<std::string> texts = {
                         "Minecraft (Alex Edition) ["s + __DATE__ + " " + __TIME__ + " built]",
                         "GLFW Version: "s + glfwGetVersionString(),
-                        "FPS: "s + std::to_string(getFPS())
+                        "FPS: "s + std::to_string(getFPS()),
+                        "Cam: "s + std::to_string((int) cam.position.x) + ", " + std::to_string((int) cam.position.y) +
+                        ", " + std::to_string((int) cam.position.z)
                 };
 
                 for (int i = 0; i < texts.size(); ++i) {
