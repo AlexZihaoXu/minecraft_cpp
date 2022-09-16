@@ -75,7 +75,7 @@ namespace minecraft {
                     cam.goRight((float) (10 * dt));
                 }
                 var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -10}), 0.0f, {0, 1, 0});
-                render::BlockRenderer::renderBlock(blocks::Block::get("minecraft:cobblestone"),
+                render::BlockRenderer::renderBlock(blocks::Block::get("minecraft:crafting_table"),
                                                    cam.projMat() * model);
 
                 onRenderGUI(dt);

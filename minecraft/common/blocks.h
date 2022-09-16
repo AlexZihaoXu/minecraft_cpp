@@ -7,22 +7,15 @@
 
 namespace minecraft::blocks {
     void registerBlocks() {
-        Block::registerBlock("minecraft:stone", "stone")
-                ->renderFaceDefsPush({
-                                             DONT_CARE,
-                                             "res/stone.png",
-                                             {{0, 0}, {0, 0, 0}},
-                                             {{0, 1}, {0, 1, 0}},
-                                             {{1, 1}, {1, 1, 0}}
-                                     })
-                ->renderFaceDefsPush({
-                                             DONT_CARE,
-                                             "res/cobblestone.png",
-                                             {{0, 0}, {0, 0, 0}},
-                                             {{1, 1}, {1, 1, 0}},
-                                             {{1, 0}, {1, 0, 0}}
-                                     });
+        Block::registerBlock("minecraft:stone", "stone")->renderFaceDefsPushQuadsAll("res/stone.png");
         Block::registerBlock("minecraft:cobblestone", "cobblestone")->renderFaceDefsPushQuadsAll("res/cobblestone.png");
+        Block::registerBlock("minecraft:crafting_table", "crafting table")
+                ->renderFaceDefsPushQuadNorth("res/crafting_table_front.png")
+                ->renderFaceDefsPushQuadEast("res/crafting_table_side.png")
+                ->renderFaceDefsPushQuadWest("res/crafting_table_side.png")
+                ->renderFaceDefsPushQuadSouth("res/crafting_table_side.png")
+                ->renderFaceDefsPushQuadTop("res/crafting_table_top.png")
+                ->renderFaceDefsPushQuadBottom("res/planks_oak.png");
     }
 }
 
