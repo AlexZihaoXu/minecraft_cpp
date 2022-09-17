@@ -94,13 +94,13 @@ void main() {
         static void initialize() {
             if (initialized)
                 return;
-            console.info("Initializing block renderer ...");
+            console.info("Initializing blockID renderer ...");
             std::vector<std::string> texPaths;
             std::set<std::string> texPathsSet;
 
             for (int i = 0; blocks::Block::get(i) != nullptr; ++i) {
                 var block = blocks::Block::get(i);
-                console.info("Renderer", "Loading block: " + block->getName());
+                console.info("BlockRenderer", "Loading block: " + block->getName());
                 for (var def: block->getModelFaceRenderDefinition()) {
                     if (texPathsSet.contains(def.texturePath))
                         continue;
@@ -131,16 +131,15 @@ void main() {
                         ->image(tex, offset, 0)
                         ->popState();
                 textureAtlasRangeTable[texPath] = {
-                        (float) offset / (float) totalWidth, (float) tex->height() / (float) totalHeight, ((float) offset + (float) tex->width()) / (float) totalWidth, 0
+                        (float) offset / (float) totalWidth, (float) tex->height() / (float) totalHeight,
+                        ((float) offset + (float) tex->width()) / (float) totalWidth, 0
                 };
-                std::cout << texPath << ": " << offset / totalWidth << ' ' << 0 << ' '
-                          << (offset + tex->width()) / totalWidth << ' ' << tex->height() / totalHeight << std::endl;
                 offset += tex->width();
             }
             textureAtlasBlocks->unbindContext();
             console.info(
-                    "Renderer",
-                    "Created block texture atlas (" + std::to_string(totalWidth) + "x" + std::to_string(totalHeight) +
+                    "BlockRenderer",
+                    "Created blockID texture atlas (" + std::to_string(totalWidth) + "x" + std::to_string(totalHeight) +
                     ")");
             initShaders();
             initialized = true;
@@ -160,6 +159,10 @@ void main() {
             textureAtlasBlocks->bind();
             program->setInt("tex0", 0);
             program->render(model);
+        }
+
+        static void renderBlock(int blockID, glm::mat4 trans) {
+            renderBlock(blocks::Block::get(blockID), trans);
         }
     };
 }

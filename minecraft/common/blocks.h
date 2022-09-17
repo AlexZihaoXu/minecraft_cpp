@@ -6,17 +6,43 @@
 #define MINECRAFT_BLOCKS_H
 
 namespace minecraft::blocks {
-    void registerBlocks() {
-        Block::registerBlock("minecraft:stone", "stone")->renderFaceDefsPushQuadsAll("res/stone.png");
-        Block::registerBlock("minecraft:cobblestone", "cobblestone")->renderFaceDefsPushQuadsAll("res/cobblestone.png");
-        Block::registerBlock("minecraft:crafting_table", "crafting table")
-                ->renderFaceDefsPushQuadNorth("res/crafting_table_front.png")
-                ->renderFaceDefsPushQuadEast("res/crafting_table_side.png")
-                ->renderFaceDefsPushQuadWest("res/crafting_table_side.png")
-                ->renderFaceDefsPushQuadSouth("res/crafting_table_side.png")
-                ->renderFaceDefsPushQuadTop("res/crafting_table_top.png")
-                ->renderFaceDefsPushQuadBottom("res/planks_oak.png");
-    }
+    class Blocks {
+    private:
+        inline static Blocks* instance;
+        Blocks() {
+        }
+    public:
+        static void registerBlocks() {
+            if (!instance) {
+                instance = new Blocks();
+            }
+        }
+
+        static Blocks* get() {
+            return instance;
+        }
+
+        int AIR = Block::registerBlock("minecraft:air", "air")->getID();
+
+        int STONE = Block::registerBlock("minecraft:stone", "stone")->renderFaceDefsPushQuadsAll("res/textures/blocks/stone.png")->getID();
+
+        int GRASS_BLOCK = Block::registerBlock("minecraft:grass_block", "grass_block")
+                ->renderFaceDefsPushQuadTop("res/textures/blocks/grass_top.png")
+                ->renderFaceDefsPushQuadBottom("res/textures/blocks/dirt.png")
+                ->renderFaceDefsPushQuadsNSEW("res/textures/blocks/grass_side.png")
+                -> getID();
+
+        int DIRT = Block::registerBlock("minecraft:dirt", "dirt")->renderFaceDefsPushQuadsAll("res/textures/blocks/dirt.png")->getID();
+
+        int COBBLESTONE = Block::registerBlock("minecraft:cobblestone", "cobblestone")->renderFaceDefsPushQuadsAll("res/textures/blocks/cobblestone.png")->getID();
+
+        int OAK_PLANKS = Block::registerBlock("minecraft:oak_planks", "oak planks")->renderFaceDefsPushQuadsAll("res/textures/blocks/planks_oak.png")->getID();
+
+        int OAK_SAPLING = Block::registerBlock("minecraft:oak_sapling", "oak sapling")->getID();
+
+        int BEDROCK = Block::registerBlock("minecraft:bedrock", "bedrock")->getID();
+    };
+
 }
 
 #endif //MINECRAFT_BLOCKS_H

@@ -196,6 +196,98 @@ namespace minecraft::blocks {
         }
 
     };
+
+    struct BlockState {
+        int blockID;
+        int direction;
+
+        Block *getBlock() const {
+            return Block::get(blockID);
+        }
+    };
+
+    class ChunkSection {
+    private:
+        std::vector<BlockState> blockStates;
+        unsigned long changeID = 0;
+    public:
+        ChunkSection() {
+            for (int i = 0; i < 16 * 16 * 16; ++i) {
+                blockStates.push_back({0, DONT_CARE});
+            }
+        }
+
+        unsigned long getChangeID() const {
+            return changeID;
+        }
+
+        void setState(const BlockState &state, int x, int y, int z) {
+            BlockState &target = blockStates[x * 16 * 16 + y * 16 + z];
+            if (!(state.blockID == target.blockID && state.direction == target.direction)) {
+                blockStates[x * 16 * 16 + y * 16 + z] = state;
+                changeID++;
+            }
+        }
+
+        void setBlock(int block, int x, int y, int z) {
+            setState({block, NORTH}, x, y, z);
+        }
+
+        BlockState &getState(int x, int y, int z) {
+            return blockStates[x * 16 * 16 + y * 16 + z];
+        }
+
+        Block *getBlock(int x, int y, int z) {
+            return getState(x, y, z).getBlock();
+        }
+    };
+
+    class Chunk {
+    private:
+        std::vector<ChunkSection *> sections;
+    public:
+        Chunk() {
+            for (int i = 0; i < 16; ++i) {
+                sections.push_back(nullptr);
+            }
+        }
+
+        ~Chunk() {
+            for (int i = 0; i < 16; ++i) {
+                if (hasSection(i)) {
+                    delete sections[i];
+                }
+            }
+        }
+
+        bool hasSection(int sectionY) const {
+            return sections[sectionY] != nullptr;
+        }
+
+        ChunkSection *getSection(int sectionY) {
+            if (!hasSection(sectionY)) {
+                sections[sectionY] = new ChunkSection();
+            }
+            return sections[sectionY];
+        }
+
+        BlockState &getState(int x, int y, int z) {
+            return getSection(y / 16)->getState(x, y % 16, z);
+        }
+
+        void setState(const BlockState &state, int x, int y, int z) {
+            getSection(y / 16)->setState(state, x, y % 16, z);
+        }
+
+        Block *getBlock(int x, int y, int z) {
+            return getState(x, y, z).getBlock();
+        }
+
+        void setBlock(int block, int x, int y, int z) {
+            setState({block, NORTH}, x, y, z);
+        }
+
+    };
 }
 
 #endif //MINECRAFT_WORLD_H

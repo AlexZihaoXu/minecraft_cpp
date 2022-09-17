@@ -36,7 +36,7 @@ namespace minecraft {
             }
 
             void onSetup() override {
-                minecraft::blocks::registerBlocks();
+                minecraft::blocks::Blocks::registerBlocks();
                 minecraft::client::render::BlockRenderer::initialize();
             }
 
@@ -75,9 +75,9 @@ namespace minecraft {
                     cam.goRight((float) (10 * dt));
                 }
                 var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -10}), 0.0f, {0, 1, 0});
-                render::BlockRenderer::renderBlock(blocks::Block::get("minecraft:crafting_table"),
-                                                   cam.projMat() * model);
+                render::BlockRenderer::renderBlock(blocks::Blocks::get()->GRASS_BLOCK, cam.projMat() * model);
 
+                GLCall(glDisable(GL_DEPTH_TEST));
                 onRenderGUI(dt);
             }
 
