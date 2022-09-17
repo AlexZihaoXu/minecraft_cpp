@@ -57,9 +57,65 @@ namespace minecraft {
             inline static MinecraftClientWindow *instance = nullptr;
             std::vector<WindowEventHandler *> eventHandlers;
             std::vector<WindowEventHandler *> autoFreeEventHandlers;
+            engine::VertexArrayObject *postProcessingVAO;
+            engine::VertexBufferObject *postProcessingVBO;
+            engine::ShaderProgram *postProcessingShader;
 
             MinecraftClientWindow() : engine::Window("Minecraft AE", 856, 482) {
                 instance = this;
+                postProcessingVBO = new engine::VertexBufferObject({
+                                                             -1, -1, 0, 0,
+                                                             -1, 1, 0, 1,
+                                                             1, 1, 1, 1,
+
+                                                             -1, -1, 0, 0,
+                                                             1, 1, 1, 1,
+                                                             1, -1, 1, 0
+                                                     });
+                postProcessingVAO = new engine::VertexArrayObject(postProcessingVBO, {2, 2});
+                var vertShader = new engine::Shader(GL_VERTEX_SHADER, R"(
+#version 330 core
+
+layout (location=0) in vec2 aPos;
+layout (location=1) in vec2 aTexCoords;
+out vec2 texCoords;
+
+void main() {
+    texCoords = aTexCoords;
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+)");
+                var fragShader = new engine::Shader(GL_FRAGMENT_SHADER, R"(
+#version 330 core
+
+in vec2 texCoords;
+out vec4 FragColor;
+uniform vec2 size;
+uniform sampler2D tex0;
+
+float width = size[0];
+float height = size[1];
+float x = texCoords.x * width;
+float y = texCoords.y * height;
+
+vec4 getColor(float x, float y) {
+    return texture(tex0, vec2(x / width, y / height));
+}
+
+float getLuma(float x, float y) {
+    vec4 color = getColor(x, y);
+    return (0.299 * color.r + 0.587 * color.g + 0.144 * color.b);
+}
+
+void main() {
+
+    FragColor = vec4(vec3(getLuma(x, y)), 1.0);
+}
+)");
+                postProcessingShader = (new engine::ShaderProgram())->attachShader(vertShader).attachShader(
+                        fragShader).link();
+                delete vertShader;
+                delete fragShader;
             }
 
         public:
@@ -98,8 +154,21 @@ namespace minecraft {
             }
 
             render::Camera cam;
+            engine::Framebuffer *framebuffer = nullptr;
 
             void onRender(double dt) override {
+
+                if (!framebuffer) {
+                    framebuffer = new engine::Framebuffer(getWidth(), getHeight());
+                }
+                if (framebuffer->width() != getWidth() || framebuffer->height() != getHeight()) {
+                    delete framebuffer;
+                    framebuffer = new engine::Framebuffer(getWidth(), getHeight());
+                }
+                GLCall(glViewport(0, 0, getWidth(), getHeight()));
+
+                framebuffer->unbindContext();
+                framebuffer->bindContext();
                 for (var handler: eventHandlers) {
                     handler->onRender(dt);
                 }
@@ -111,9 +180,25 @@ namespace minecraft {
                 GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
                 var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -10}), 0.0f, {0, 1, 0});
-                render::BlockRenderer::renderBlock(blocks::Blocks::get()->GRASS_BLOCK, cam.projMat() * model);
+
+                for (int x = -10; x < 10; ++x) {
+                    for (int y = -10; y < 10; ++y) {
+                        var m = glm::translate(model, {x, y, 0});
+                        render::BlockRenderer::renderBlock(blocks::Blocks::get()->GRASS_BLOCK, cam.projMat() * m);
+                    }
+                }
+
 
                 GLCall(glDisable(GL_DEPTH_TEST));
+
+                framebuffer->unbindContext();
+                {
+                    glActiveTexture(GL_TEXTURE0);
+                    framebuffer->bind();
+                    postProcessingShader->setInt("tex0", 0);
+                    postProcessingShader->setVec2("size", {getWidth(), getHeight()});
+                    postProcessingShader->render(postProcessingVAO);
+                }
                 onRenderGUI(dt);
             }
 
