@@ -52,6 +52,14 @@ namespace minecraft::client::render {
             position.y += distance;
         }
 
+        glm::vec3 frontXZ() {
+            return {-glm::cos(yaw + glm::half_pi<float>()), 0, -glm::sin(yaw + glm::half_pi<float>())};
+        }
+
+        glm::vec3 rightXZ() {
+            return {(float) glm::cos(yaw), 0.0f, (float) glm::sin(yaw)};
+        }
+
     };
 }
 

@@ -245,8 +245,20 @@ namespace minecraft::blocks {
     class Chunk {
     private:
         std::vector<ChunkSection *> sections;
+        int chunkX, chunkY;
     public:
-        Chunk() {
+
+        int getChunkX() const {
+            return chunkX;
+        }
+
+        int getChunkY() const {
+            return chunkY;
+        }
+
+        Chunk(int x, int y) {
+            chunkX = x;
+            chunkY = y;
             for (int i = 0; i < 16; ++i) {
                 sections.push_back(nullptr);
             }
@@ -277,6 +289,63 @@ namespace minecraft::blocks {
 
         void setState(const BlockState &state, int x, int y, int z) {
             getSection(y / 16)->setState(state, x, y % 16, z);
+        }
+
+        Block *getBlock(int x, int y, int z) {
+            return getState(x, y, z).getBlock();
+        }
+
+        void setBlock(int block, int x, int y, int z) {
+            setState({block, NORTH}, x, y, z);
+        }
+
+    };
+
+    class World {
+    private:
+        std::map<unsigned long long, Chunk *> chunksMap;
+
+    public:
+
+        World() {
+
+        }
+
+        ~World() {
+            for (const auto &item: chunksMap) {
+                delete item.second;
+            }
+        }
+
+        bool hasChunk(int x, int y) const {
+            return chunksMap.contains((x + 0x80000000) + (y + 0x80000000) * 0x100000000);
+        }
+
+        Chunk *getChunk(int x, int y) {
+            unsigned long long index = (x + 0x80000000) + (y + 0x80000000) * 0x100000000;
+            if (!chunksMap.contains(index)) {
+                chunksMap[index] = new Chunk(x, y);
+            }
+            return chunksMap[index];
+        }
+
+        BlockState &getState(float x, float y, float z) {
+            return getChunk(glm::floor(x / 16.0f), glm::floor(z / 16.0f))->getState(math::pmod(x, 16), y,
+                                                                                    math::pmod(z, 16));
+        }
+
+        BlockState &getState(int x, int y, int z) {
+            return getState((float) x, (float) y, (float) z);
+        }
+
+        void setState(const BlockState &state, float x, float y, float z) {
+            getChunk(glm::floor(x / 16.0f), glm::floor(z / 16.0f))->setState(state, math::pmod(x, 16), y,
+                                                                             math::pmod(z, 16));
+        }
+
+
+        void setState(const BlockState &state, int x, int y, int z) {
+            setState(state, (float) x, (float) y, (float) z);
         }
 
         Block *getBlock(int x, int y, int z) {

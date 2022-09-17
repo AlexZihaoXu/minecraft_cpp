@@ -84,6 +84,9 @@ namespace engine {
             glfwSetScrollCallback(windowHandle, [](GLFWwindow *, double x, double y) {
                 instance->onScroll(x, y);
             });
+            glfwSetWindowFocusCallback(windowHandle, [](GLFWwindow *, int focused) {
+                instance->onFocusChange(focused);
+            });
 
             glfwMakeContextCurrent(windowHandle);
             gladLoadGL(glfwGetProcAddress);
@@ -186,6 +189,10 @@ namespace engine {
         }
 
         virtual void onRender(double dt) {
+
+        }
+
+        virtual void onFocusChange(bool focused) {
 
         }
 

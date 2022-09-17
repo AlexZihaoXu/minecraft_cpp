@@ -11,15 +11,72 @@
 
 namespace minecraft {
     namespace client {
+
+        class WindowEventHandler {
+        public:
+
+            WindowEventHandler() {
+
+            }
+
+            virtual ~WindowEventHandler() {
+            }
+
+            virtual void onMouseMove(double x, double y) {
+
+            }
+
+            virtual void onMouseDown(int button) {
+
+            }
+
+            virtual void onMouseUp(int button) {
+
+            }
+
+            virtual void onKeydown(int key) {
+
+            }
+
+            virtual void onKeyup(int key) {
+
+            }
+
+            virtual void onRender(double dt) {
+
+            }
+
+            virtual void onFocusChange(bool focused) {
+
+            }
+
+        };
+
         class MinecraftClientWindow : public engine::Window {
         private:
             inline static MinecraftClientWindow *instance = nullptr;
+            std::vector<WindowEventHandler *> eventHandlers;
+            std::vector<WindowEventHandler *> autoFreeEventHandlers;
 
             MinecraftClientWindow() : engine::Window("Minecraft AE", 856, 482) {
                 instance = this;
             }
 
         public:
+
+            void addEventHandler(WindowEventHandler *handler) {
+                eventHandlers.push_back(handler);
+            }
+
+            void removeEventHandler(WindowEventHandler *handler) {
+                std::remove(eventHandlers.begin(), eventHandlers.end(), handler);
+            }
+
+            void addEventHandlerAutoRemove(WindowEventHandler *handler) {
+                addEventHandler(handler);
+                autoFreeEventHandlers.push_back(handler);
+            }
+
             static MinecraftClientWindow *getInstance() {
                 if (instance == nullptr) {
                     instance = new MinecraftClientWindow();
@@ -43,37 +100,16 @@ namespace minecraft {
             render::Camera cam;
 
             void onRender(double dt) override {
+                for (var handler: eventHandlers) {
+                    handler->onRender(dt);
+                }
+
                 GLCall(glClearColor(0.3, 0.3, 0.3, 1));
                 GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
                 GLCall(glEnable(GL_BLEND));
                 GLCall(glEnable(GL_DEPTH_TEST));
                 GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-                var speed = 3.0f;
-                if (glfwGetKey(getHandle(), GLFW_KEY_UP)) {
-                    cam.pitch += (float) dt * speed;
-                }
-                if (glfwGetKey(getHandle(), GLFW_KEY_DOWN)) {
-                    cam.pitch -= (float) dt * speed;
-                }
-                if (glfwGetKey(getHandle(), GLFW_KEY_LEFT)) {
-                    cam.yaw -= (float) dt * speed;
-                }
-                if (glfwGetKey(getHandle(), GLFW_KEY_RIGHT)) {
-                    cam.yaw += (float) dt * speed;
-                }
-                if (glfwGetKey(getHandle(), GLFW_KEY_W)) {
-                    cam.goForwardFree((float) (10 * dt));
-                }
-                if (glfwGetKey(getHandle(), GLFW_KEY_S)) {
-                    cam.goForwardFree((float) (-10 * dt));
-                }
-                if (glfwGetKey(getHandle(), GLFW_KEY_A)) {
-                    cam.goRight(-(float) (10 * dt));
-                }
-                if (glfwGetKey(getHandle(), GLFW_KEY_D)) {
-                    cam.goRight((float) (10 * dt));
-                }
                 var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -10}), 0.0f, {0, 1, 0});
                 render::BlockRenderer::renderBlock(blocks::Blocks::get()->GRASS_BLOCK, cam.projMat() * model);
 
@@ -105,6 +141,46 @@ namespace minecraft {
                 }
             }
 
+            void onKeyUpdate(int key, bool down) override {
+                if (down) {
+                    for (var handler: this->eventHandlers) {
+                        handler->onKeydown(key);
+                    }
+                } else {
+                    for (var handler: this->eventHandlers) {
+                        handler->onKeyup(key);
+                    }
+                }
+            }
+
+            void onMouseButton(int button, bool down) override {
+                if (down) {
+                    for (var handler: this->eventHandlers) {
+                        handler->onMouseDown(button);
+                    }
+                } else {
+                    for (var handler: this->eventHandlers) {
+                        handler->onMouseUp(button);
+                    }
+                }
+            }
+
+            void onMouseMotion(double x, double y) override {
+                for (var handler: this->eventHandlers) {
+                    handler->onMouseMove(x, y);
+                }
+            }
+
+            void onDestroy() override {
+                for (var handler: this->autoFreeEventHandlers)
+                    delete handler;
+            }
+
+            void onFocusChange(bool focused) override {
+                for (var handler: this->eventHandlers) {
+                    handler->onFocusChange(focused);
+                }
+            }
         };
     }
 

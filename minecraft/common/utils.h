@@ -6,6 +6,13 @@
 #define MINECRAFT_UTILS_H
 
 namespace minecraft::math {
+    int pmod(int a, int b) {
+        int mod = a % (int)b;
+        if (mod < 0) {
+            mod += b;
+        }
+        return mod;
+    }
     struct rect {
     private:
         glm::vec2 _pos = {0.0, 0.0};
