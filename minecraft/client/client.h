@@ -92,24 +92,32 @@ in vec2 texCoords;
 out vec4 FragColor;
 uniform vec2 size;
 uniform sampler2D tex0;
+uniform float msaa;
 
 float width = size[0];
 float height = size[1];
 float x = texCoords.x * width;
 float y = texCoords.y * height;
 
-vec4 getColor(float x, float y) {
-    return texture(tex0, vec2(x / width, y / height));
+vec3 getColor(float x, float y) {
+    return texture(tex0, vec2(x / width, y / height)).rgb;
 }
 
-float getLuma(float x, float y) {
-    vec4 color = getColor(x, y);
-    return (0.299 * color.r + 0.587 * color.g + 0.144 * color.b);
+float getLuma(vec3 color) {
+    return sqrt(0.299 * color.r * color.r + 0.587 * color.g * color.g + 0.144 * color.b * color.b);
 }
 
 void main() {
+    float count = 0;
+    vec3 colorSum = vec3(0);
+    for (float nx = -msaa / 2; nx <= msaa / 2; nx++) {
+        for (float ny = -msaa / 2; ny <= msaa / 2; ny++) {
+            colorSum += getColor(x + nx, y + ny);
+            count++;
+        }
+    }
 
-    FragColor = vec4(vec3(getLuma(x, y)), 1.0);
+    FragColor = vec4(colorSum / count, 1);
 }
 )");
                 postProcessingShader = (new engine::ShaderProgram())->attachShader(vertShader).attachShader(
@@ -119,6 +127,8 @@ void main() {
             }
 
         public:
+
+            int MSAA_LEVEL = 4;
 
             void addEventHandler(WindowEventHandler *handler) {
                 eventHandlers.push_back(handler);
@@ -159,13 +169,13 @@ void main() {
             void onRender(double dt) override {
 
                 if (!framebuffer) {
-                    framebuffer = new engine::Framebuffer(getWidth(), getHeight());
+                    framebuffer = new engine::Framebuffer(getWidth() * MSAA_LEVEL, getHeight() * MSAA_LEVEL);
                 }
-                if (framebuffer->width() != getWidth() || framebuffer->height() != getHeight()) {
+                if (framebuffer->width() != getWidth() * MSAA_LEVEL || framebuffer->height() != getHeight() * MSAA_LEVEL) {
                     delete framebuffer;
-                    framebuffer = new engine::Framebuffer(getWidth(), getHeight());
+                    framebuffer = new engine::Framebuffer(getWidth() * MSAA_LEVEL, getHeight() * MSAA_LEVEL);
                 }
-                GLCall(glViewport(0, 0, getWidth(), getHeight()));
+                GLCall(glViewport(0, 0, framebuffer->width(), framebuffer->height()));
 
                 framebuffer->unbindContext();
                 framebuffer->bindContext();
@@ -193,10 +203,12 @@ void main() {
 
                 framebuffer->unbindContext();
                 {
+                    GLCall(glViewport(0, 0, getWidth(), getHeight()));
                     glActiveTexture(GL_TEXTURE0);
                     framebuffer->bind();
                     postProcessingShader->setInt("tex0", 0);
-                    postProcessingShader->setVec2("size", {getWidth(), getHeight()});
+                    postProcessingShader->setFloat("msaa", MSAA_LEVEL);
+                    postProcessingShader->setVec2("size", {framebuffer->width(), framebuffer->height()});
                     postProcessingShader->render(postProcessingVAO);
                 }
                 onRenderGUI(dt);
