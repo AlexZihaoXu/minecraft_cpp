@@ -112,6 +112,7 @@ namespace engine {
         GLuint id;
         bool hasEbo = false;
         int length;
+        const ElementBufferObject* ebo;
 
         void applyLayout(const std::vector<int> &sizes) {
             int stride = 0;
@@ -151,6 +152,7 @@ namespace engine {
             initialized(vbo, ebo, sizes);
             length = ebo->size();
             hasEbo = true;
+            this->ebo = ebo;
         }
 
         ~VertexArrayObject() {
@@ -164,6 +166,7 @@ namespace engine {
         void render() const {
             bind();
             if (hasEbo) {
+                ebo->bind();
                 GLCall(glDrawElements(GL_TRIANGLES, length, GL_UNSIGNED_INT, 0));
             } else {
                 GLCall(glDrawArrays(GL_TRIANGLES, 0, length));

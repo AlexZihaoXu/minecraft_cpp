@@ -343,7 +343,6 @@ namespace minecraft::blocks {
                                                                              math::pmod(z, 16));
         }
 
-
         void setState(const BlockState &state, int x, int y, int z) {
             setState(state, (float) x, (float) y, (float) z);
         }

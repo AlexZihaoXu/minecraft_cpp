@@ -22,7 +22,7 @@ namespace minecraft::client::render {
     public:
         ChunkSectionRenderer(blocks::ChunkSection *section) {
             this->section = section;
-            changeID = section->getChangeID();
+            changeID = -1;
 
             if (shader == nullptr) {
                 var vertShader = new engine::Shader(GL_VERTEX_SHADER, R"(
@@ -110,6 +110,7 @@ void main() {
 
         void update() {
             if (section->getChangeID() == changeID) return;
+            console.info("DEBUG", "Section updated");
             changeID = section->getChangeID();
             // 3 * 3D_Pos  2 * texCoords  4 * vertColor
             std::vector<GLfloat> vertices;
@@ -211,6 +212,50 @@ void main() {
             shader->setInt("tex0", 0);
             shader->render(vao);
         }
+    };
+
+    class ChunkRenderer {
+    private:
+        blocks::Chunk *chunk;
+        std::vector<ChunkSectionRenderer *> sectionRenderers;
+    public:
+        ChunkRenderer(blocks::Chunk *chunk) {
+            this->chunk = chunk;
+            for (int i = 0; i < 16; ++i) {
+                sectionRenderers.push_back(nullptr);
+            }
+        }
+
+        ~ChunkRenderer() {
+            for (int i = 0; i < 16; ++i) {
+                if (sectionRenderers[i] != nullptr)
+                    delete sectionRenderers[i];
+            }
+        }
+
+        void update() {
+
+            for (int i = 0; i < 16; ++i) {
+                if (chunk->hasSection(i) && sectionRenderers[i] == nullptr) {
+                    sectionRenderers[i] = new ChunkSectionRenderer(chunk->getSection(i));
+                }
+                if (sectionRenderers[i] != nullptr) {
+                    sectionRenderers[i]->update();
+                }
+            }
+
+        }
+
+        void render(glm::mat4 trans) {
+            for (int i = 0; i < 16; ++i) {
+                if (sectionRenderers[i] != nullptr) {
+                    var mat = glm::translate(trans, {0, 16 * i, 0});
+                    sectionRenderers[i]->render(mat);
+                }
+            }
+        }
+
+
     };
 }
 

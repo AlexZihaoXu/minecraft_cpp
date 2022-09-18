@@ -158,20 +158,19 @@ void main() {
                 delete instance;
             }
 
-            blocks::ChunkSection* chunkSection;
-            render::ChunkSectionRenderer* chunkSectionRenderer;
+            blocks::Chunk *chunk;
+            render::ChunkRenderer *chunkRenderer;
+
             void onSetup() override {
                 minecraft::blocks::Blocks::registerBlocks();
                 minecraft::client::render::BlockRenderer::initialize();
-                chunkSection = new blocks::ChunkSection();
-                chunkSectionRenderer = new render::ChunkSectionRenderer(chunkSection);
+                chunk = new blocks::Chunk(0, 0);
+                chunkRenderer = new render::ChunkRenderer(chunk);
 
-                for (int x = -8; x < 8; ++x) {
-                    for (int y = -8; y < 8; ++y) {
-                        for (int z = -8; z < 8; ++z) {
-                            if (std::sqrt(x * x + y * y + z * z) < 7)
-                                chunkSection->setBlock(blocks::Blocks::get()->GRASS_BLOCK, x + 8, y + 8, z + 8);
-                        }
+                for (int x = 0; x < 16; ++x) {
+                    for (int y = 0; y < 128; ++y) {
+                        chunk->setBlock(blocks::Blocks::get()->GRASS_BLOCK, x, y, 8 + glm::cos(y / 8.0f) * 7);
+                        chunk->setBlock(blocks::Blocks::get()->GRASS_BLOCK, x, y, 8 + glm::cos(y / 8.0f) * 7 + 1);
                     }
                 }
             }
@@ -180,7 +179,7 @@ void main() {
             engine::Framebuffer *framebuffer = nullptr;
 
             void onRender(double dt) override {
-                chunkSectionRenderer->update();
+                chunkRenderer->update();
 
                 int width, height;
                 glfwGetFramebufferSize(getHandle(), &width, &height);
@@ -212,7 +211,7 @@ void main() {
                 }
                 {
                     var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -5}), 0.0f, {0, 1, 0});
-                    chunkSectionRenderer->render(cam.projMat() * model);
+                    chunkRenderer->render(cam.projMat() * model);
                 }
 
 
