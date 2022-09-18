@@ -128,7 +128,7 @@ void main() {
 
         public:
 
-            int MSAA_LEVEL = 4;
+            int MSAA_LEVEL = 3;
 
             void addEventHandler(WindowEventHandler *handler) {
                 eventHandlers.push_back(handler);
@@ -158,15 +158,30 @@ void main() {
                 delete instance;
             }
 
+            blocks::ChunkSection* chunkSection;
+            render::ChunkSectionRenderer* chunkSectionRenderer;
             void onSetup() override {
                 minecraft::blocks::Blocks::registerBlocks();
                 minecraft::client::render::BlockRenderer::initialize();
+                chunkSection = new blocks::ChunkSection();
+                chunkSectionRenderer = new render::ChunkSectionRenderer(chunkSection);
+
+                for (int x = -8; x < 8; ++x) {
+                    for (int y = -8; y < 8; ++y) {
+                        for (int z = -8; z < 8; ++z) {
+                            if (std::sqrt(x * x + y * y + z * z) < 7)
+                                chunkSection->setBlock(blocks::Blocks::get()->GRASS_BLOCK, x + 8, y + 8, z + 8);
+                        }
+                    }
+                }
             }
 
             render::Camera cam;
             engine::Framebuffer *framebuffer = nullptr;
 
             void onRender(double dt) override {
+                chunkSectionRenderer->update();
+
                 int width, height;
                 glfwGetFramebufferSize(getHandle(), &width, &height);
                 if (!framebuffer) {
@@ -191,13 +206,13 @@ void main() {
                 GLCall(glEnable(GL_DEPTH_TEST));
                 GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-                var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -10}), 0.0f, {0, 1, 0});
-
-                for (int x = -10; x < 10; ++x) {
-                    for (int y = -10; y < 10; ++y) {
-                        var m = glm::translate(model, {x, y, 0});
-                        render::BlockRenderer::renderBlock(blocks::Blocks::get()->GRASS_BLOCK, cam.projMat() * m);
-                    }
+                {
+                    var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -10}), 0.0f, {0, 1, 0});
+                    render::BlockRenderer::renderBlock(blocks::Blocks::get()->GRASS_BLOCK, cam.projMat() * model);
+                }
+                {
+                    var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -5}), 0.0f, {0, 1, 0});
+                    chunkSectionRenderer->render(cam.projMat() * model);
                 }
 
 

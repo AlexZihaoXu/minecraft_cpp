@@ -91,6 +91,10 @@ void main() {
             return textureAtlasBlocks;
         }
 
+        static std::map<std::string, glm::vec4>& getTextureAtlasRangeTable() {
+            return textureAtlasRangeTable;
+        }
+
         static void initialize() {
             if (initialized)
                 return;
