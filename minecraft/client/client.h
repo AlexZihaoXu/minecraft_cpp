@@ -64,14 +64,14 @@ namespace minecraft {
             MinecraftClientWindow() : engine::Window("Minecraft AE", 856, 482) {
                 instance = this;
                 postProcessingVBO = new engine::VertexBufferObject({
-                                                             -1, -1, 0, 0,
-                                                             -1, 1, 0, 1,
-                                                             1, 1, 1, 1,
+                                                                           -1, -1, 0, 0,
+                                                                           -1, 1, 0, 1,
+                                                                           1, 1, 1, 1,
 
-                                                             -1, -1, 0, 0,
-                                                             1, 1, 1, 1,
-                                                             1, -1, 1, 0
-                                                     });
+                                                                           -1, -1, 0, 0,
+                                                                           1, 1, 1, 1,
+                                                                           1, -1, 1, 0
+                                                                   });
                 postProcessingVAO = new engine::VertexArrayObject(postProcessingVBO, {2, 2});
                 var vertShader = new engine::Shader(GL_VERTEX_SHADER, R"(
 #version 330 core
@@ -167,13 +167,15 @@ void main() {
             engine::Framebuffer *framebuffer = nullptr;
 
             void onRender(double dt) override {
-
+                int width, height;
+                glfwGetFramebufferSize(getHandle(), &width, &height);
                 if (!framebuffer) {
-                    framebuffer = new engine::Framebuffer(getWidth() * MSAA_LEVEL, getHeight() * MSAA_LEVEL);
+                    framebuffer = new engine::Framebuffer(width * MSAA_LEVEL, height * MSAA_LEVEL);
                 }
-                if (framebuffer->width() != getWidth() * MSAA_LEVEL || framebuffer->height() != getHeight() * MSAA_LEVEL) {
+                if (framebuffer->width() != width * MSAA_LEVEL ||
+                    framebuffer->height() != height * MSAA_LEVEL) {
                     delete framebuffer;
-                    framebuffer = new engine::Framebuffer(getWidth() * MSAA_LEVEL, getHeight() * MSAA_LEVEL);
+                    framebuffer = new engine::Framebuffer(width * MSAA_LEVEL, height * MSAA_LEVEL);
                 }
                 GLCall(glViewport(0, 0, framebuffer->width(), framebuffer->height()));
 
@@ -203,7 +205,8 @@ void main() {
 
                 framebuffer->unbindContext();
                 {
-                    GLCall(glViewport(0, 0, getWidth(), getHeight()));
+
+                    GLCall(glViewport(0, 0, width, height));
                     glActiveTexture(GL_TEXTURE0);
                     framebuffer->bind();
                     postProcessingShader->setInt("tex0", 0);

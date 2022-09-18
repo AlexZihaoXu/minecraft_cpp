@@ -137,11 +137,6 @@ namespace engine {
                     }
                 }
 
-                {
-                    int width, height;
-                    glfwGetFramebufferSize(getHandle(), &width, &height);
-                    GLCall(glViewport(0, 0, width, height));
-                }
                 bind();
                 this->onRender(dt);
                 glfwSwapBuffers(windowHandle);
