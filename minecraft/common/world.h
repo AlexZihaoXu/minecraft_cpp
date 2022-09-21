@@ -206,15 +206,33 @@ namespace minecraft::blocks {
         }
     };
 
+    class Chunk;
+
     class ChunkSection {
     private:
         std::vector<BlockState> blockStates;
         unsigned long changeID = 0;
+        Chunk *chunk;
+        int sectionY;
+
+        ChunkSection *getSectionFromOwnChunk(int y);
+
     public:
-        ChunkSection() {
+
+        ChunkSection(int sectionY, Chunk *chunk) {
+            this->chunk = chunk;
+            this->sectionY = sectionY;
             for (int i = 0; i < 16 * 16 * 16; ++i) {
                 blockStates.push_back({0, DONT_CARE});
             }
+        }
+
+        int getSectionY() {
+            return sectionY;
+        }
+
+        Chunk *getChunk() {
+            return chunk;
         }
 
         unsigned long getChangeID() const {
@@ -234,7 +252,11 @@ namespace minecraft::blocks {
         }
 
         BlockState &getState(int x, int y, int z) {
-            return blockStates[x * 16 * 16 + y * 16 + z];
+            if (0 <= x && x < 16 && 0 <= y && y < 16 && 0 <= z && z < 16)
+                return blockStates[x * 16 * 16 + y * 16 + z];
+            else {
+
+            }
         }
 
         Block *getBlock(int x, int y, int z) {
@@ -278,7 +300,7 @@ namespace minecraft::blocks {
 
         ChunkSection *getSection(int sectionY) {
             if (!hasSection(sectionY)) {
-                sections[sectionY] = new ChunkSection();
+                sections[sectionY] = new ChunkSection(sectionY, this);
             }
             return sections[sectionY];
         }
@@ -300,6 +322,13 @@ namespace minecraft::blocks {
         }
 
     };
+
+    ChunkSection *ChunkSection::getSectionFromOwnChunk(int y) {
+        if (getChunk()->hasSection(y)) {
+            return getChunk()->getSection(y);
+        }
+        return nullptr;
+    }
 
     class World {
     private:
