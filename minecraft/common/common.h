@@ -8,11 +8,11 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <deque>
 #include <set>
 #include <glm.hpp>
-#include <gtx/hash.hpp>
 
 #include "logging.h"
 #include "constants.h"

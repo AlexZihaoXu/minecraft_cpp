@@ -19,7 +19,18 @@ namespace minecraft::client::render {
             return begin + x * (end - begin);
         }
 
-        inline static std::hash<glm::vec3> hasherv3f;
+        inline static std::hash<float> hasherf;
+
+        static unsigned long long hash3f(float x, float y, float z) {
+            var a = hasherf(x);
+            var b = hasherf(y);
+            var c = hasherf(z);
+            return a * 71 + b * 83 + c;
+        }
+
+        static unsigned long long hash3f(const glm::vec3 &xyz) {
+            return hash3f(xyz.x, xyz.y, xyz.z);
+        }
 
     public:
         ChunkSectionRenderer(blocks::ChunkSection *section) {
@@ -83,13 +94,13 @@ void main() {
         }
 
         void addPoint(std::vector<GLfloat> &vertices, std::vector<GLuint> &indices,
-                      std::map<unsigned long long, GLuint> &indicesMap,
+                      std::unordered_map<unsigned long long, GLuint> &indicesMap,
                       int *indicesCount,
                       glm::vec3 pos, glm::vec2 texCoords, glm::vec4 color) {
 
-            unsigned long long key1 = hasherv3f(pos);
-            unsigned long long key2 = hasherv3f({texCoords.x, texCoords.y, color.x});
-            unsigned long long key3 = hasherv3f({color.y, color.z, color.w});
+            unsigned long long key1 = hash3f(pos);
+            unsigned long long key2 = hash3f(texCoords.x, texCoords.y, color.x);
+            unsigned long long key3 = hash3f(color.y, color.z, color.w);
             unsigned long long key = ((key1 * 23 + key2) * 17) + key3;
 
 
@@ -119,7 +130,7 @@ void main() {
             // 3 * 3D_Pos  2 * texCoords  4 * vertColor
             std::vector<GLfloat> vertices;
             std::vector<GLuint> indices;
-            std::map<unsigned long long, GLuint> indicesMap;
+            std::unordered_map<unsigned long long, GLuint> indicesMap;
             int indicesCount = 0;
 
             std::vector<int> directions = {
