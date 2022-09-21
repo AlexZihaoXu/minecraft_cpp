@@ -19,6 +19,8 @@ namespace minecraft::client::render {
             return begin + x * (end - begin);
         }
 
+        inline static std::hash<glm::vec3> hasherv3f;
+
     public:
         ChunkSectionRenderer(blocks::ChunkSection *section) {
             this->section = section;
@@ -81,14 +83,16 @@ void main() {
         }
 
         void addPoint(std::vector<GLfloat> &vertices, std::vector<GLuint> &indices,
-                      std::map<std::string, GLuint> &indicesMap,
+                      std::map<unsigned long long, GLuint> &indicesMap,
                       int *indicesCount,
                       glm::vec3 pos, glm::vec2 texCoords, glm::vec4 color) {
 
-            std::string key = std::to_string(pos.x) + "," + std::to_string(pos.y) + "," + std::to_string(pos.z) + "," +
-                              std::to_string(texCoords.x) + "," + std::to_string(texCoords.y) + "," +
-                              std::to_string(color.x) + "," + std::to_string(color.y) + "," +
-                              std::to_string(color.z) + "," + std::to_string(color.w) + ",";
+            unsigned long long key1 = hasherv3f(pos);
+            unsigned long long key2 = hasherv3f({texCoords.x, texCoords.y, color.x});
+            unsigned long long key3 = hasherv3f({color.y, color.z, color.w});
+            unsigned long long key = ((key1 * 23 + key2) * 17) + key3;
+
+
             if (!indicesMap.contains(key)) {
                 vertices.push_back(pos.x);
                 vertices.push_back(pos.y);
@@ -110,12 +114,12 @@ void main() {
 
         void update() {
             if (section->getChangeID() == changeID) return;
-            console.info("DEBUG", "Section updated");
+            double time = glfwGetTime();
             changeID = section->getChangeID();
             // 3 * 3D_Pos  2 * texCoords  4 * vertColor
             std::vector<GLfloat> vertices;
             std::vector<GLuint> indices;
-            std::map<std::string, GLuint> indicesMap;
+            std::map<unsigned long long, GLuint> indicesMap;
             int indicesCount = 0;
 
             std::vector<int> directions = {
@@ -197,6 +201,7 @@ void main() {
             ebo = new engine::ElementBufferObject(indices);
             vao = new engine::VertexArrayObject(vbo, ebo, {3, 2, 4});
 
+            console.info("DEBUG", "Section update cost: " + std::to_string(glfwGetTime() - time) + "ms");
         }
 
         void render(glm::mat4 trans) {
