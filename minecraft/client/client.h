@@ -110,8 +110,25 @@ float getLuma(vec3 color) {
 void main() {
     float count = 0;
     vec3 colorSum = vec3(0);
-    for (float nx = -msaa / 2; nx <= msaa / 2; nx++) {
-        for (float ny = -msaa / 2; ny <= msaa / 2; ny++) {
+
+    float centerLuma = getLuma(getColor(x, y));
+    float lumaUp = abs(getLuma(getColor(x, y - 2)) - centerLuma);
+    float lumaDn = abs(getLuma(getColor(x, y + 2)) - centerLuma);
+    float lumaLf = abs(getLuma(getColor(x - 2, y)) - centerLuma);
+    float lumaRt = abs(getLuma(getColor(x + 2, y)) - centerLuma);
+
+    float maxLuma = max(lumaUp, max(lumaDn, max(lumaLf, lumaRt)));
+
+    float m = msaa;
+    if (maxLuma < 0.005) {
+        FragColor = vec4(getColor(x, y), 1);
+        return;
+    } else if (maxLuma < 0.04) {
+        m = 1;
+    }
+
+    for (float nx = -m / 2; nx <= m / 2; nx++) {
+        for (float ny = -m / 2; ny <= m / 2; ny++) {
             colorSum += getColor(x + nx, y + ny);
             count++;
         }
@@ -128,7 +145,7 @@ void main() {
 
         public:
 
-            int MSAA_LEVEL = 3;
+            int MSAA_LEVEL = 4;
 
             void addEventHandler(WindowEventHandler *handler) {
                 eventHandlers.push_back(handler);
@@ -168,9 +185,10 @@ void main() {
                 chunkRenderer = new render::ChunkRenderer(chunk);
 
                 for (int x = 0; x < 16; ++x) {
-                    for (int y = 0; y < 128; ++y) {
-                        chunk->setBlock(blocks::Blocks::get()->GRASS_BLOCK, x, y, 8 + glm::cos(y / 8.0f) * 7);
-                        chunk->setBlock(blocks::Blocks::get()->GRASS_BLOCK, x, y, 8 + glm::cos(y / 8.0f) * 7 + 1);
+                    for (int y = 0; y < 120; ++y) {
+                        for (int z = 0; z < 16; ++z) {
+                            chunk->setBlock(math::random() * 5 + 1, x, y, z);
+                        }
                     }
                 }
             }
