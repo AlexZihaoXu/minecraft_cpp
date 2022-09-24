@@ -12,6 +12,7 @@
 #include <vector>
 #include <deque>
 #include <set>
+#include <unordered_set>
 #include <glm.hpp>
 
 #include "logging.h"

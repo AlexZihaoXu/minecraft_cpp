@@ -175,20 +175,22 @@ void main() {
                 delete instance;
             }
 
-            blocks::Chunk *chunk;
-            render::ChunkRenderer *chunkRenderer;
+            blocks::World* world;
+            render::WorldRenderer* renderer;
 
             void onSetup() override {
                 minecraft::blocks::Blocks::registerBlocks();
                 minecraft::client::render::BlockRenderer::initialize();
-                chunk = new blocks::Chunk(0, 0);
-                chunkRenderer = new render::ChunkRenderer(chunk);
+                world = new blocks::World();
+                renderer = new render::WorldRenderer(world);
 
-                for (int x = 0; x < 16; ++x) {
-                    for (int y = 0; y < 120; ++y) {
-                        for (int z = 0; z < 16; ++z) {
-                            chunk->setBlock(math::random() * 5 + 1, x, y, z);
-                        }
+                for (int x = -100; x < 100; ++x) {
+                    for (int z = -100; z < 100; ++z) {
+                        world->setBlock(blocks::Blocks::get()->BEDROCK, x, 0, z);
+                        world->setBlock(blocks::Blocks::get()->DIRT, x, 1, z);
+                        world->setBlock(blocks::Blocks::get()->DIRT, x, 2, z);
+                        world->setBlock(blocks::Blocks::get()->DIRT, x, 3, z);
+                        world->setBlock(blocks::Blocks::get()->GRASS_BLOCK, x, 4, z);
                     }
                 }
             }
@@ -197,7 +199,7 @@ void main() {
             engine::Framebuffer *framebuffer = nullptr;
 
             void onRender(double dt) override {
-                chunkRenderer->update();
+                renderer->update();
 
                 int width, height;
                 glfwGetFramebufferSize(getHandle(), &width, &height);
@@ -229,7 +231,7 @@ void main() {
                 }
                 {
                     var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -5}), 0.0f, {0, 1, 0});
-                    chunkRenderer->render(cam.projMat() * model);
+                    renderer->render(cam.projMat() * model);
                 }
 
 
@@ -314,6 +316,8 @@ void main() {
                 }
             }
         };
+
+
     }
 
 }

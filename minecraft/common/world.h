@@ -251,16 +251,16 @@ namespace minecraft::blocks {
             setState({block, NORTH}, x, y, z);
         }
 
-        BlockState &getState(int x, int y, int z) {
+        BlockState *getState(int x, int y, int z) {
             if (0 <= x && x < 16 && 0 <= y && y < 16 && 0 <= z && z < 16)
-                return blockStates[x * 16 * 16 + y * 16 + z];
+                return &blockStates[x * 16 * 16 + y * 16 + z];
             else {
 
             }
         }
 
         Block *getBlock(int x, int y, int z) {
-            return getState(x, y, z).getBlock();
+            return getState(x, y, z)->getBlock();
         }
     };
 
@@ -305,7 +305,10 @@ namespace minecraft::blocks {
             return sections[sectionY];
         }
 
-        BlockState &getState(int x, int y, int z) {
+        BlockState *getState(int x, int y, int z) {
+            if (y < 0 || y >= 256 || x < 0 || x >= 16 || z < 0 || z >= 16) {
+                return nullptr;
+            }
             return getSection(y / 16)->getState(x, y % 16, z);
         }
 
@@ -314,7 +317,7 @@ namespace minecraft::blocks {
         }
 
         Block *getBlock(int x, int y, int z) {
-            return getState(x, y, z).getBlock();
+            return getState(x, y, z)->getBlock();
         }
 
         void setBlock(int block, int x, int y, int z) {
@@ -333,6 +336,7 @@ namespace minecraft::blocks {
     class World {
     private:
         std::map<unsigned long long, Chunk *> chunksMap;
+        std::unordered_set<Chunk *> chunksSet;
 
     public:
 
@@ -354,16 +358,21 @@ namespace minecraft::blocks {
             unsigned long long index = (x + 0x80000000) + (y + 0x80000000) * 0x100000000;
             if (!chunksMap.contains(index)) {
                 chunksMap[index] = new Chunk(x, y);
+                chunksSet.insert(chunksMap[index]);
             }
             return chunksMap[index];
         }
 
-        BlockState &getState(float x, float y, float z) {
+        const std::unordered_set<Chunk *>& getChunksSet() const {
+            return chunksSet;
+        }
+
+        BlockState *getState(float x, float y, float z) {
             return getChunk(glm::floor(x / 16.0f), glm::floor(z / 16.0f))->getState(math::pmod(x, 16), y,
                                                                                     math::pmod(z, 16));
         }
 
-        BlockState &getState(int x, int y, int z) {
+        BlockState *getState(int x, int y, int z) {
             return getState((float) x, (float) y, (float) z);
         }
 
@@ -377,7 +386,7 @@ namespace minecraft::blocks {
         }
 
         Block *getBlock(int x, int y, int z) {
-            return getState(x, y, z).getBlock();
+            return getState(x, y, z)->getBlock();
         }
 
         void setBlock(int block, int x, int y, int z) {

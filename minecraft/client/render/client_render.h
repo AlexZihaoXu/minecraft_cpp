@@ -65,6 +65,6 @@ namespace minecraft::client::render {
 
 #include "client_2d_renderer.h"
 #include "client_block_renderer.h"
-#include "chunk_renderer.h"
+#include "world_renderer.h"
 
 #endif //MINECRAFT_CLIENT_RENDER_H

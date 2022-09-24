@@ -2,8 +2,8 @@
 // Created by Alex on 9/17/2022.
 //
 
-#ifndef MINECRAFT_CHUNK_RENDERER_H
-#define MINECRAFT_CHUNK_RENDERER_H
+#ifndef MINECRAFT_WORLD_RENDERER_H
+#define MINECRAFT_WORLD_RENDERER_H
 
 namespace minecraft::client::render {
     class ChunkSectionRenderer {
@@ -88,9 +88,10 @@ void main() {
 
         blocks::BlockState *getState(int x, int y, int z) {
             if (0 <= x && x < 16 && 0 <= y && y < 16 && 0 <= z && z < 16) {
-                return &section->getState(x, y, z);
+                return section->getState(x, y, z);
+            } else {
+                return section->getChunk()->getState(x, section->getSectionY() * 16 + y, z);
             }
-            return nullptr;
         }
 
         void addPoint(std::vector<GLfloat> &vertices, std::vector<GLuint> &indices,
@@ -166,6 +167,7 @@ void main() {
                                             if (nextState->getBlock() != nullptr &&
                                                 nextState->getBlock()->getID() != 0) {
                                                 skip = true;
+                                                break;
                                             }
                                         }
                                         break;
@@ -235,6 +237,11 @@ void main() {
         blocks::Chunk *chunk;
         std::vector<ChunkSectionRenderer *> sectionRenderers;
     public:
+
+        blocks::Chunk* getChunk() const {
+            return chunk;
+        }
+
         ChunkRenderer(blocks::Chunk *chunk) {
             this->chunk = chunk;
             for (int i = 0; i < 16; ++i) {
@@ -273,6 +280,47 @@ void main() {
 
 
     };
+
+    class WorldRenderer {
+    private:
+
+        blocks::World* world;
+        std::unordered_map<unsigned long long, ChunkRenderer*> chunkRenderers;
+
+    public:
+
+        WorldRenderer(blocks::World* world) {
+            this->world = world;
+
+        }
+
+        ~WorldRenderer() {
+            for (const auto &renderer: chunkRenderers) {
+                delete renderer.second;
+            }
+        }
+
+        void update() {
+            for (const auto &chunk: world->getChunksSet()) {
+                unsigned long long index = (chunk->getChunkX() + 0x80000000) + (chunk->getChunkY() + 0x80000000) * 0x100000000;
+                if (chunkRenderers.contains(index)) {
+                    chunkRenderers[index]->update();
+                    continue;
+                }
+                chunkRenderers[index] = new ChunkRenderer(chunk);
+            }
+        }
+
+        void render(glm::mat4 trans) {
+            for (const auto &item: chunkRenderers) {
+                var t = glm::translate(trans, {
+                    item.second->getChunk()->getChunkX() * 16, 0, item.second->getChunk()->getChunkY() * 16
+                });
+                item.second->render(t);
+            }
+        }
+
+    };
 }
 
-#endif //MINECRAFT_CHUNK_RENDERER_H
+#endif //MINECRAFT_WORLD_RENDERER_H
