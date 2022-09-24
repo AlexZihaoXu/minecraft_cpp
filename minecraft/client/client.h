@@ -175,8 +175,8 @@ void main() {
                 delete instance;
             }
 
-            blocks::World* world;
-            render::WorldRenderer* renderer;
+            blocks::World *world;
+            render::WorldRenderer *renderer;
 
             void onSetup() override {
                 minecraft::blocks::Blocks::registerBlocks();
@@ -184,8 +184,8 @@ void main() {
                 world = new blocks::World();
                 renderer = new render::WorldRenderer(world);
 
-                for (int x = -100; x < 100; ++x) {
-                    for (int z = -100; z < 100; ++z) {
+                for (int x = -150; x < 150; ++x) {
+                    for (int z = -150; z < 150; ++z) {
                         world->setBlock(blocks::Blocks::get()->BEDROCK, x, 0, z);
                         world->setBlock(blocks::Blocks::get()->DIRT, x, 1, z);
                         world->setBlock(blocks::Blocks::get()->DIRT, x, 2, z);
@@ -193,6 +193,7 @@ void main() {
                         world->setBlock(blocks::Blocks::get()->GRASS_BLOCK, x, 4, z);
                     }
                 }
+
             }
 
             render::Camera cam;
@@ -225,10 +226,10 @@ void main() {
                 GLCall(glEnable(GL_DEPTH_TEST));
                 GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-                {
-                    var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -10}), 0.0f, {0, 1, 0});
-                    render::BlockRenderer::renderBlock(blocks::Blocks::get()->GRASS_BLOCK, cam.projMat() * model);
-                }
+//                {
+//                    var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -10}), 0.0f, {0, 1, 0});
+//                    render::BlockRenderer::renderBlock(blocks::Blocks::get()->GRASS_BLOCK, cam.projMat() * model);
+//                }
                 {
                     var model = glm::rotate(glm::translate(glm::mat4(1), {0, 0, -5}), 0.0f, {0, 1, 0});
                     renderer->render(cam.projMat() * model);

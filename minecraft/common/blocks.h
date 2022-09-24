@@ -40,7 +40,9 @@ namespace minecraft::blocks {
 
         int OAK_SAPLING = Block::registerBlock("minecraft:oak_sapling", "oak sapling")->getID();
 
-        int BEDROCK = Block::registerBlock("minecraft:bedrock", "bedrock")->getID();
+        int BEDROCK = Block::registerBlock("minecraft:bedrock", "bedrock")
+                ->renderFaceDefsPushQuadsAll("res/textures/blocks/bedrock.png")
+                ->getID();
     };
 
 }

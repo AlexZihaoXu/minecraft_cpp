@@ -124,8 +124,8 @@ void main() {
             indices.push_back(indicesMap[key]);
         }
 
-        void update() {
-            if (section->getChangeID() == changeID) return;
+        bool update() {
+            if (section->getChangeID() == changeID) return false;
             double time = glfwGetTime();
             changeID = section->getChangeID();
             // 3 * 3D_Pos  2 * texCoords  4 * vertColor
@@ -215,6 +215,7 @@ void main() {
             vao = new engine::VertexArrayObject(vbo, ebo, {3, 2, 4});
 
             console.info("DEBUG", "Section update cost: " + std::to_string(glfwGetTime() - time) + "ms");
+            return true;
         }
 
         void render(glm::mat4 trans) {
@@ -256,17 +257,19 @@ void main() {
             }
         }
 
-        void update() {
+        bool update() {
 
             for (int i = 0; i < 16; ++i) {
                 if (chunk->hasSection(i) && sectionRenderers[i] == nullptr) {
                     sectionRenderers[i] = new ChunkSectionRenderer(chunk->getSection(i));
+                    return true;
                 }
                 if (sectionRenderers[i] != nullptr) {
-                    sectionRenderers[i]->update();
+                    return sectionRenderers[i]->update();
                 }
             }
 
+            return false;
         }
 
         void render(glm::mat4 trans) {
@@ -304,7 +307,8 @@ void main() {
             for (const auto &chunk: world->getChunksSet()) {
                 unsigned long long index = (chunk->getChunkX() + 0x80000000) + (chunk->getChunkY() + 0x80000000) * 0x100000000;
                 if (chunkRenderers.contains(index)) {
-                    chunkRenderers[index]->update();
+                    if (chunkRenderers[index]->update())
+                        return;
                     continue;
                 }
                 chunkRenderers[index] = new ChunkRenderer(chunk);

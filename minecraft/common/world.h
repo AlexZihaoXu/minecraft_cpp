@@ -377,6 +377,9 @@ namespace minecraft::blocks {
         }
 
         void setState(const BlockState &state, float x, float y, float z) {
+            if (y < 0 || y >= 255) {
+                return;
+            }
             getChunk(glm::floor(x / 16.0f), glm::floor(z / 16.0f))->setState(state, math::pmod(x, 16), y,
                                                                              math::pmod(z, 16));
         }
